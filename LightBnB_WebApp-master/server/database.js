@@ -17,11 +17,11 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  return pool.query(`SELECT name
+  return pool.query(`SELECT *
   FROM users
   WHERE email = $1;`, [email])
-  .then(res => {return res.rows
-  }).catch(err => console.error('query error', err.stack));
+  .then(res => {
+    return res.rows[0]})
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -31,11 +31,11 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
-  return pool.query(`SELECT name
+  return pool.query(`SELECT *
   FROM users
-  WHERE is = $1;`, [id])
-  .then(res => {return res.rows
-  }).catch(err => console.error('query error', err.stack));
+  WHERE id = $1;`, [id])
+  .then(res => {
+    return res.rows[0]})
 }
 exports.getUserWithId = getUserWithId;
 
@@ -45,13 +45,13 @@ exports.getUserWithId = getUserWithId;
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser =  function(user) {
+const addUser = function(user) {
   return pool.query(`INSERT INTO users (name, email, password)
-  VALUES ('$1', '$2', '$3')
+  VALUES ($1, $2, $3)
   RETURNING *;`,
-  [user.name, user.email, user.password])
-  .then(res => {return res.rows
-  }).catch(err => console.error('query error', err.stack));
+  [user["name"], user["email"], user["password"]])
+  .then(res => {
+    return res.rows})
 }
 exports.addUser = addUser;
 
@@ -63,7 +63,12 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool.query(`SELECT reservations.*
+  FROM reservations
+  WHERE guest_id = $1
+  LIMIT $2;`, [guest_id, limit])
+  .then(res => {
+    return res.rows})
 }
 exports.getAllReservations = getAllReservations;
 
@@ -81,8 +86,7 @@ const getAllProperties = function(options, limit = 10) {
   JOIN property_reviews ON properties.id = property_reviews.property_id
   GROUP BY properties.id
   LIMIT $1;`, [limit])
-  .then(res => {return res.rows
-  }).catch(err => console.error('query error', err.stack));
+  .then(res => {return res.rows})
 }
 exports.getAllProperties = getAllProperties;
 

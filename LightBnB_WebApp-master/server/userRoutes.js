@@ -29,6 +29,7 @@ module.exports = function(router, database) {
       if (bcrypt.compareSync(password, user.password)) {
         return user;
       }
+      console.log("failed login:",email, password);
       return null;
     });
   }
